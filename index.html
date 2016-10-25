@@ -1,1 +1,345 @@
-Hello World
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - FBX loader</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				font-family: Monospace;
+				background-color: #000;
+				color: #fff;
+				margin: 0px;
+				overflow: hidden;
+			}
+			#info {
+				color: #fff;
+				position: absolute;
+				top: 10px;
+				width: 100%;
+				text-align: center;
+				z-index: 100;
+				display:block;
+			}
+			#info a, .button { color: #f00; font-weight: bold; text-decoration: underline; cursor: pointer }
+		</style>
+	</head>
+
+	<body>
+		<div id="info">
+		<a href="http://threejs.org" target="_blank">three.js</a> - FBXLoader test
+		</div>
+
+		<script src="Three/build/three.js"></script>
+
+		<script src="js/controls/OrbitControls.js"></script>
+
+		<script src="js/loaders/FBXLoader.js"></script>
+		<script type="text/javascript" src="js/Octree.js"></script>
+
+		<script src="js/Detector.js"></script>
+		<script src="js/libs/stats.min.js"></script>
+
+		<script src="Classes/Entity.js"></script>
+		<script src="Classes/Player.js"></script>
+		<script src="Classes/CombatAgent.js"></script>
+		<script src="Classes/Scene.js"></script>
+		<script src="Classes/Actions/Actions.js"></script>
+
+		<script>
+
+			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+			var container, stats, controls;
+			var camera, scene = new THREE.Scene(), renderer;
+
+			var clock = new THREE.Clock();
+
+			var mixers = [];
+
+			var raycaster = new THREE.Raycaster();
+			var mouse = new THREE.Vector2();
+			var mouseDownPos = new THREE.Vector2();
+			var intersected;
+			var offset = new THREE.Vector3(),
+				intersection = new THREE.Vector3(),
+				INTERSECTED, SELECTED;
+			var plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+			var loadingManager = new THREE.LoadingManager();
+
+			var entityScene = new Scene(scene);
+
+			init();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+
+				// grid
+//				var gridHelper = new THREE.GridHelper( 14, 28, 0x303030, 0x303030 );
+//				gridHelper.position.set( 0, - 0.04, 0 );
+//				scene.add( gridHelper );
+
+				// stats
+				stats = new Stats();
+				container.appendChild( stats.dom );
+
+				// model
+				loadingManager.onProgress = function( item, loaded, total ) {
+					console.log( item, loaded, total );
+				};
+
+				var onProgress = function( xhr ) {
+
+					if ( xhr.lengthComputable ) {
+
+						var percentComplete = xhr.loaded / xhr.total * 100;
+						console.log( Math.round( percentComplete, 2 ) + '% downloaded' );
+
+					}
+
+				};
+
+				var onError = function( xhr ) {
+				};
+
+				//--
+				var ent = Entity.createCombatAgent(null, -6, 0, 0);
+//				ent.velX = .1;
+				ent.dirX = 1;
+				ent.layer = 1;
+				ent = Entity.createCombatAgent(null, 6, 0, 0);
+//				ent.velX = -.1;
+				ent.dirX = -1;
+				ent.layer = 2;
+				//--
+
+/*				var loader = new THREE.FBXLoader( loadingManager );
+				loader.load( 'https://threejs.org/examples/models/fbx/xsi_man_skinning.fbx', //'models/fbx/xsi_man_skinning.fbx', 
+					function( object ) {
+//						object.scale.x = object.scale.y = object.scale.z = 0.1;
+						var ent2 = Entity.createCombatAgent(null, -6, 0, 0, object);
+						ent2.velX = .1;
+						ent2.dirX = 1;
+						ent2.layer = 1;
+						ent2 = Entity.createCombatAgent(null, 6, 0, 0, object.clone());
+						ent2.velX = -.1;
+						ent2.dirX = -1;
+						ent2.layer = 2;
+
+//						scene.add( object );
+				}, onProgress, onError );*/
+
+/*				var loader = new THREE.FBXLoader( manager );
+				loader.load( 'https://threejs.org/examples/models/fbx/xsi_man_skinning.fbx', //'models/fbx/xsi_man_skinning.fbx', 
+					function( object ) {
+
+					// ent = new Entity(object);
+			  //       ent.velocity.x = 1;
+			  //       ent.velocity.y = 2;
+			  //       entityScene.addEntity(ent);
+
+					object.traverse( function( child ) {
+
+						if ( child instanceof THREE.Mesh ) {
+
+							// pass
+
+						}
+
+						if ( child instanceof THREE.SkinnedMesh ) {
+
+							if ( child.geometry.animations !== undefined || child.geometry.morphAnimations !== undefined ) {
+
+								child.mixer = new THREE.AnimationMixer( child );
+								mixers.push( child.mixer );
+
+								var action = child.mixer.clipAction( child.geometry.animations[ 0 ] );
+								action.play();
+
+							}
+
+						}
+
+					} );
+
+					scene.add( object );
+
+
+				}, onProgress, onError );*/
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.setClearColor( 0x000000 );
+				container.appendChild( renderer.domElement );
+
+				camera.position.set( 0, 2, 25 );
+
+				// controls, camera
+				// controls = new THREE.OrbitControls( camera, renderer.domElement );
+				// controls.target.set( 0, 0, 0 );
+				// controls.update();
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+				renderer.domElement.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
+				renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUp, false );
+
+				animate();
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				if ( mixers.length > 0 ) {
+
+					for ( var i = 0; i < mixers.length; i ++ ) {
+
+						mixers[ i ].update( clock.getDelta() );
+
+					}
+
+				}
+
+				stats.update();
+
+				render();
+
+			}
+
+			function render() {
+
+				renderer.render( scene, camera );
+				entityScene.update(0.03);
+			}
+
+			function onDocumentMouseMove( event ) {
+				event.preventDefault();
+
+				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+				raycaster.setFromCamera( mouse, camera );
+
+/*				var octreeObjects;
+				var numObjects;
+				var numFaces = 0;
+				var intersections;
+
+				// if ( useOctree ) {
+				// 	octreeObjects = octree.search( raycaster.ray.origin, raycaster.ray.far, true, raycaster.ray.direction );
+				// 	intersections = raycaster.intersectOctreeObjects( octreeObjects );
+				// 	numObjects = octreeObjects.length;
+				// 	for ( var i = 0, il = numObjects; i < il; i++ ) {
+				// 		numFaces += octreeObjects[ i ].faces.length;
+				// 	}
+				// }
+				// else {
+					intersections = raycaster.intersectObjects( objects );
+					numObjects = objects.length;
+					numFaces = totalFaces;
+				//}
+
+				if ( intersections.length > 0 ) {
+					if ( intersected != intersections[ 0 ].object ) {
+//						if ( intersected ) intersected.material.color.setHex( baseColor );
+
+						intersected = intersections[ 0 ].object;
+//						intersected.material.color.setHex( intersectColor );
+					}
+				}
+				else if ( intersected ) {
+//					intersected.material.color.setHex( baseColor );
+					intersected = null;
+				}*/
+			}
+
+			function onDocumentMouseDown( event ) {
+				event.preventDefault();
+				mouseDownPos.x = mouse.x;
+				mouseDownPos.y = mouse.y;
+				raycaster.setFromCamera( mouse, camera );
+				var intersects = raycaster.intersectObjects( scene.children );
+
+				if ( intersects.length > 0 ) {
+//					controls.enabled = false;
+					SELECTED = intersects[ 0 ].object;
+
+//					plane.setFromNormalAndCoplanarPoint(
+//							camera.getWorldDirection( plane.normal ),
+//							SELECTED.position );
+
+					if ( raycaster.ray.intersectPlane( plane, intersection ) ) {
+						offset.copy( intersection ).sub( SELECTED.position );
+//						SELECTED.position = intersection;
+//						SELECTED.entity.setPosition(SELECTED.position);
+
+						// if (SELECTED.entity.agent != null) {
+						// 	SELECTED.entity.agent.tapAction.run(SELECTED.entity);
+						// }
+					}
+					container.style.cursor = 'move';
+				}
+			}
+
+			function onDocumentMouseUp( event ) {
+				event.preventDefault();
+//				controls.enabled = true;
+
+//				if ( INTERSECTED ) {
+					if (SELECTED != null && SELECTED.entity != null && SELECTED.entity.agent != null) {
+						var data = null;
+						var delta = new THREE.Vector3(mouseDownPos.x - mouse.x, mouseDownPos.y - mouse.y, 0);
+						var force = 20;
+//						if (delta.length > 0) {
+//							force = Math.min(10, delta.length);
+//							delta.normalize();
+							data = {
+								dir: delta,
+								value: force
+							}
+//						}
+						SELECTED.entity.agent.slingshotAction.run(SELECTED.entity, data);
+					}
+					SELECTED = null;
+//				}
+				container.style.cursor = 'auto';
+			}
+
+			function loadFbx(loadingManager, url, ent, callback) {
+				var loader = new THREE.FBXLoader(loadingManager);
+				loader.load( url, callback, function( object ) {
+					if (callback !== undefined) {
+						callback(object);
+					}
+
+					if (object) {
+						scene.add( object );
+					}
+					if (ent) {
+						ent.setObject(object);
+					}
+				}, null, null );
+			}
+		</script>
+
+	</body>
+</html>
