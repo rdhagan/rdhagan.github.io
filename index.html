@@ -137,6 +137,8 @@
 
 			var waterNormals;
 
+			var lastUpdate = new Date().getTime();
+
 			init();
 
 			function init() {
@@ -342,6 +344,9 @@
 			//
 
 			function animate() {
+				var now = new Date().getTime();
+			    var dt = (now - lastUpdate) / 1000.0;
+			    lastUpdate = now;
 
 				requestAnimationFrame( animate );
 
@@ -359,9 +364,9 @@
 					stats.update();
 				}
 
-				entityScene.update(0.03);
+				entityScene.update(dt);
 				var oldEnergy = energy;
-				energy += 0.02;
+				energy += 1 * dt;
 				energy = Math.min(10, energy);
 				if (Math.floor(energy) != Math.floor(oldEnergy)) {
 					energyDiv.innerHTML = "Energy: " + (Math.floor(energy)) + " (5 to shoot)";
