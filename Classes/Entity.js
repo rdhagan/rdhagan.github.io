@@ -3,7 +3,7 @@ function Entity(obj, name) {
     this.name = name === undefined ? null : name;
     this.x = this.y = this.z = 0;
     this.previousX = this.previousY = this.previousZ = 0;
-    this.w = this.h = this.d = 1;
+    this.w = this.h = this.d = SCALE;
     this.moved = false;
     this.obj = obj;
     this.agent = null;
@@ -19,7 +19,7 @@ function Entity(obj, name) {
     this.dirX = this.dirY = this.dirZ = 0;
     this.velX = this.velY = this.velZ = 0;
     this.accX = this.accZ = 0;
-    this.accY = -2;
+    this.accY = -2 * SCALE;
     this.moving = true;
     this.collideHandlers = [];  // function (ent1, ent2)
 
@@ -185,7 +185,7 @@ Entity.createObject = function(prefab, x, y, z, obj) {
     return ent;
 }
 
-Entity.createCombatAgent = function(prefab, x, y, z, obj, enableShooting, force, forceY) {
+Entity.createCombatAgent = function(prefab, x, y, z, obj, autoShooting, force, forceY) {
     var ent = Entity.createObject(prefab, x, y, z, obj);
     ent.name = "CombatAgent";
     ent.player = new Player(ent);
@@ -196,15 +196,17 @@ Entity.createCombatAgent = function(prefab, x, y, z, obj, enableShooting, force,
     shootAction.force = force ? force : 10;
     shootAction.forceY = forceY ? forceY : 2;
     shootAction.destroyMs = 5000;
-    agent.slingshotAction = shootAction;
-    if (enableShooting) {
+    if (autoShooting) {
         agent.action = shootAction;
         agent.actionIntervalMs = 10000;
+    } else {
+        agent.slingshotAction = shootAction;        
     }
     agent.start();
 
     var material = new THREE.MeshBasicMaterial();
-    var prefabObj = new THREE.Mesh( new THREE.SphereGeometry( 0.25, 20, 10 ), material );
+    var prefabObj = new THREE.Mesh( new THREE.SphereGeometry( 0.25 * SCALE, 20, 10 ), material );
+    prefabObj.w = prefabObj.h = prefabObj.d = SCALE;
     var prefab = new Entity(prefabObj);
     prefab.destroyOnHitGround = true;
     prefab.collideHandlers.push(Entity.damageOnCollide);

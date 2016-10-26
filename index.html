@@ -8,12 +8,12 @@
 			body {
 				font-family: Monospace;
 				background-color: #000;
-				color: #fff;
+				color: #000;
 				margin: 0px;
 				overflow: hidden;
 			}
 			#info {
-				color: #fff;
+				color: #000;
 				position: absolute;
 				top: 10px;
 				width: 100%;
@@ -22,7 +22,7 @@
 				display:block;
 			}
 			#score {
-				color: #fff;
+				color: #000;
 				position: absolute;
 				top: 30px;
 				width: 100%;
@@ -31,7 +31,7 @@
 				display:block;
 			}
 			#health {
-				color: #fff;
+				color: #000;
 				position: absolute;
 				bottom: 30px;
 				width: 100%;
@@ -40,7 +40,7 @@
 				display:block;
 			}
 			#energy {
-				color: #fff;
+				color: #000;
 				position: absolute;
 				bottom: 10px;
 				width: 100%;
@@ -48,7 +48,7 @@
 				z-index: 100;
 				display:block;
 			}
-			#info a, .button { color: #f00; font-weight: bold; text-decoration: underline; cursor: pointer }
+			#info a, .button { color: #f00; font-weight: bold; text-decoration: underline}
 		</style>
 	</head>
 
@@ -72,6 +72,9 @@
 
 		<script src="js/loaders/DDSLoader.js"></script>
 
+		<script src="js/Mirror.js"></script>
+		<script src="js/WaterShader.js"></script>
+
 		<script src="Classes/Entity.js"></script>
 		<script src="Classes/Player.js"></script>
 		<script src="Classes/CombatAgent.js"></script>
@@ -81,6 +84,8 @@
 		<script>
 
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+			var SCALE = 60;
 
 			var SCREEN_WIDTH = window.innerWidth;
 			var SCREEN_HEIGHT = window.innerHeight;
@@ -116,6 +121,21 @@
 			var score = 0;
 			var scoreDiv = document.getElementById("score");
 
+			//--
+			var sphere;
+
+			var parameters = {
+				width: 2000,
+				height: 2000,
+				widthSegments: 250,
+				heightSegments: 250,
+				depth: 1500,
+				param: 4,
+				filterparam: 1
+			};
+
+			var waterNormals;
+
 			init();
 
 			function init() {
@@ -126,21 +146,21 @@
 //				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
 //				camera.position.set( 0, 2, 50 );
 
-				camera = new THREE.PerspectiveCamera( 75, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 100000 );
-				camera.position.y = 10;
-				camera.position.z = 20;
+				camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 0.5, 3000000 );
+				camera.position.set( 0, 750, 2000 );
+				camera.lookAt(new THREE.Vector3(0, 0, 0));
 
 				var ambient = new THREE.AmbientLight( 0x221100 );
 				scene.add( ambient );
 
-				var directionalLight = new THREE.DirectionalLight( 0xffeedd, 1.5 );
-				directionalLight.position.set( 0, -70, 100 ).normalize();
-				scene.add( directionalLight );
+				var light = new THREE.DirectionalLight( 0xffeedd, 1.5 );
+				light.position.set( 0, -70, 100 ).normalize();
+				scene.add( light );
 
 				// grid
-				var gridHelper = new THREE.GridHelper( 14, 28, 0x303030, 0x303030 );
-				gridHelper.position.set( 0, - 0.04, 0 );
-				scene.add( gridHelper );
+				// var gridHelper = new THREE.GridHelper( 14, 28, 0x303030, 0x303030 );
+				// gridHelper.position.set( 0, - 0.04, 0 );
+				// scene.add( gridHelper );
 
 				// stats
 				// stats = new Stats();
@@ -157,7 +177,7 @@
 				ent.layer = 2;*/
 
 				loadModel("examples/obj/female02/Female02_slim.js", //"examples/obj/male02/Male02_dds.js",       
-					1, 1, -6, 0, 0, 0.03);
+					1, 1, -8 * SCALE, 0, 0, 0.03 * SCALE);
 				spawnEnemy();
 
 				renderer = new THREE.WebGLRenderer();
@@ -177,8 +197,115 @@
 				renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
 				renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUp, false );
 
-				animate();
+				//--
+				var textureLoader = new THREE.TextureLoader();
+				waterNormals = textureLoader.load( 'examples/textures/waternormals.jpg' );
+				waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping;
 
+				// ground
+//				var texture2 = new THREE.TextureLoader().load( 'examples/textures/crate_color8.tga' );
+				var material2 = new THREE.MeshBasicMaterial( { color: 0x885500 } );
+	            var newObj = new THREE.Mesh( new THREE.BoxGeometry( 1, 1, 1 ), material2 );
+	            var height = SCALE * (4 + Math.random() * 4);
+	            newObj.position.z = SCALE * -13;
+	            newObj.scale.x = SCALE * 100;
+	            newObj.scale.z = SCALE * 30;
+	            newObj.scale.y = SCALE / 10;
+	            scene.add(newObj);
+
+				water = new THREE.Water( renderer, camera, scene, {
+					textureWidth: 512,
+					textureHeight: 512,
+					waterNormals: waterNormals,
+					alpha: 	1.0,
+					sunDirection: light.position.clone().normalize(),
+					sunColor: 0xffffff,
+					waterColor: 0x001e0f,
+					distortionScale: 50.0,
+				} );
+
+
+				mirrorMesh = new THREE.Mesh(
+					new THREE.PlaneBufferGeometry( parameters.width * 500, parameters.height * 500 ),
+					water.material
+				);
+
+				mirrorMesh.add( water );
+				mirrorMesh.rotation.x = - Math.PI * 0.5;
+				scene.add( mirrorMesh );
+
+
+				// load skybox
+
+				var cubeMap = new THREE.CubeTexture( [] );
+				cubeMap.format = THREE.RGBFormat;
+
+				var loader = new THREE.ImageLoader();
+				loader.load( 'examples/textures/skyboxsun25degtest.png', function ( image ) {
+
+					var getSide = function ( x, y ) {
+
+						var size = 1024;
+
+						var canvas = document.createElement( 'canvas' );
+						canvas.width = size;
+						canvas.height = size;
+
+						var context = canvas.getContext( '2d' );
+						context.drawImage( image, - x * size, - y * size );
+
+						return canvas;
+
+					};
+
+					cubeMap.images[ 0 ] = getSide( 2, 1 ); // px
+					cubeMap.images[ 1 ] = getSide( 0, 1 ); // nx
+					cubeMap.images[ 2 ] = getSide( 1, 0 ); // py
+					cubeMap.images[ 3 ] = getSide( 1, 2 ); // ny
+					cubeMap.images[ 4 ] = getSide( 1, 1 ); // pz
+					cubeMap.images[ 5 ] = getSide( 3, 1 ); // nz
+					cubeMap.needsUpdate = true;
+
+				} );
+
+				var cubeShader = THREE.ShaderLib[ 'cube' ];
+				cubeShader.uniforms[ 'tCube' ].value = cubeMap;
+
+				var skyBoxMaterial = new THREE.ShaderMaterial( {
+					fragmentShader: cubeShader.fragmentShader,
+					vertexShader: cubeShader.vertexShader,
+					uniforms: cubeShader.uniforms,
+					depthWrite: false,
+					side: THREE.BackSide
+				} );
+
+				var skyBox = new THREE.Mesh(
+					new THREE.BoxGeometry( 1000000, 1000000, 1000000 ),
+					skyBoxMaterial
+				);
+
+				scene.add( skyBox );
+
+
+				var geometry = new THREE.IcosahedronGeometry( 400, 4 );
+
+				for ( var i = 0, j = geometry.faces.length; i < j; i ++ ) {
+
+					geometry.faces[ i ].color.setHex( Math.random() * 0xffffff );
+
+				}
+
+				var material = new THREE.MeshPhongMaterial( {
+					vertexColors: THREE.FaceColors,
+					shininess: 100,
+					envMap: cubeMap
+				} );
+
+//				sphere = new THREE.Mesh( geometry, material );
+//				scene.add( sphere );
+
+				//--
+				animate();
 			}
 
 			function spawnWall() {
@@ -187,16 +314,17 @@
 				}
 				var material = new THREE.MeshBasicMaterial();
 	            var newObj = new THREE.Mesh( new THREE.BoxGeometry( 1, 1, 1 ), material );
-	            var height = 4 + Math.random() * 4;
+	            var height = SCALE * (4 + Math.random() * 4);
+	            newObj.scale.x = newObj.scale.z = SCALE;
 	            newObj.scale.y = height;
-				wall = Entity.createObject(null, Math.random() * 2 - 1, 0, 0, newObj);
+				wall = Entity.createObject(null, SCALE * Math.random() * 2 - 1, 0, 0, newObj);
 				wall.h = height;
 				wall.layer = 2;
 				wall.offsetY = height * 0.5;
 			}
 
 			function spawnEnemy() {
-				loadModel("examples/obj/female02/Female02_slim.js", -1, 2, 4 + Math.random() * 5, 0, 0, 0.03);
+				loadModel("examples/obj/female02/Female02_slim.js", -1, 2, SCALE * 8 + Math.random() * 5, 0, 0, 0.03 * SCALE);
 			}
 
 			function onWindowResize() {
@@ -240,7 +368,9 @@
 					enemy = null;
 					score++;
 					scoreDiv.innerHTML = "Score: " + score;
-					spawnWall();
+					if (score > 2) {
+						spawnWall();
+					}
 					setTimeout(spawnEnemy, 4000);
 				}
 
@@ -251,6 +381,15 @@
 			function render() {
 
 				renderer.render( scene, camera );
+
+				var time = performance.now() * 0.001;
+
+				// sphere.position.y = Math.sin( time ) * 500 + 250;
+				// sphere.rotation.x = time * 0.5;
+				// sphere.rotation.z = time * 0.51;
+
+				water.material.uniforms.time.value += 1.0 / 60.0;
+				water.render();
 			}
 
 			function onDocumentMouseMove( event ) {
@@ -295,10 +434,10 @@
 //				controls.enabled = true;
 
 				if (SELECTED != null && SELECTED.entity != null && SELECTED.entity.agent != null) {
-					if (energy >= 5) {
+					if (energy >= 5 && SELECTED.entity.agent.slingshotAction) {
 						var data = null;
 						var delta = new THREE.Vector3(mouseDownPos.x - mouse.x, mouseDownPos.y - mouse.y, 0);
-						var force = 20;
+						var force = 40 * SCALE;
 //						if (delta.length > 0) {
 //							force = Math.min(10, delta.length);
 //							delta.normalize();
@@ -355,8 +494,8 @@
 
 				var isEnemy = layer == 2;
 				var ent = Entity.createCombatAgent(null, x, y, z, mesh, isEnemy,
-					isEnemy ? (12 + score) : null, isEnemy ? 2 : null);
-				ent.h = 6;
+					isEnemy ? (SCALE * 12 + score) : null, isEnemy ? SCALE * 2 : null);
+				ent.h *= 6;
 				ent.dirX = dirX;
 				ent.layer = layer;
 
