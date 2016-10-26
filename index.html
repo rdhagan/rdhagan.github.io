@@ -319,10 +319,10 @@
 				}
 				var material = new THREE.MeshBasicMaterial();
 	            var newObj = new THREE.Mesh( new THREE.BoxGeometry( 1, 1, 1 ), material );
-	            var height = SCALE * (4 + Math.random() * 4);
+	            var height = SCALE * (2 + (score / 10.0));
 	            newObj.scale.x = newObj.scale.z = SCALE;
 	            newObj.scale.y = height;
-				wall = Entity.createObject(null, SCALE * Math.random() * 2 - 1, 0, 0, newObj);
+				wall = Entity.createObject(null, SCALE * Math.random() * 3 - 1.5, 0, 0, newObj);
 				wall.h = height;
 				wall.layer = 2;
 				wall.offsetY = height * 0.5;
