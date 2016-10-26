@@ -366,7 +366,7 @@
 
 				entityScene.update(dt);
 				var oldEnergy = energy;
-				energy += 1 * dt;
+				energy += 1.7 * dt;
 				energy = Math.min(10, energy);
 				if (Math.floor(energy) != Math.floor(oldEnergy)) {
 					energyDiv.innerHTML = "Energy: " + (Math.floor(energy)) + " (5 to shoot)";
