@@ -146,7 +146,7 @@
 //				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
 //				camera.position.set( 0, 2, 50 );
 
-				camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 0.5, 3000000 );
+				camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 0.5, 3000 );
 				camera.position.set( 0, 750, 2000 );
 				camera.lookAt(new THREE.Vector3(0, 0, 0));
 
@@ -197,10 +197,10 @@
 				renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
 				renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUp, false );
 
-				//--
-				var textureLoader = new THREE.TextureLoader();
-				waterNormals = textureLoader.load( 'examples/textures/waternormals.jpg' );
-				waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping;
+				function preventBehavior(e) {
+				    e.preventDefault(); 
+				};
+				document.addEventListener("touchmove", preventBehavior, false);
 
 				// ground
 //				var texture2 = new THREE.TextureLoader().load( 'examples/textures/crate_color8.tga' );
@@ -210,8 +210,13 @@
 	            newObj.position.z = SCALE * -13;
 	            newObj.scale.x = SCALE * 100;
 	            newObj.scale.z = SCALE * 30;
-	            newObj.scale.y = SCALE / 10;
+	            newObj.scale.y = SCALE;
 	            scene.add(newObj);
+
+				//--
+				var textureLoader = new THREE.TextureLoader();
+				waterNormals = textureLoader.load( 'examples/textures/waternormals.jpg' );
+				waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping;
 
 				water = new THREE.Water( renderer, camera, scene, {
 					textureWidth: 512,
