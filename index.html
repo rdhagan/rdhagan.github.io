@@ -117,6 +117,7 @@
 			var energy = 5;
 			var energyDiv = document.getElementById("energy");
 			var health = 10;
+			var oldHealth = health;
 			var healthDiv = document.getElementById("health");
 			var score = 0;
 			var scoreDiv = document.getElementById("score");
@@ -197,9 +198,10 @@
 				renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
 				renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUp, false );
 
-				renderer.domElement.addEventListener("touchmove", onDocumentMouseMove, false);
-				renderer.domElement.addEventListener("touchstart", onDocumentMouseDown, false);
-				renderer.domElement.addEventListener("touchend", onDocumentMouseUp, false);
+				function preventBehavior(e) {
+				    e.preventDefault(); 
+				};
+				document.addEventListener("touchmove", preventBehavior, false);
 
 				// ground
 //				var texture2 = new THREE.TextureLoader().load( 'examples/textures/crate_color8.tga' );
@@ -361,13 +363,18 @@
 				}
 
 				entityScene.update(0.03);
+				var oldEnergy = energy;
 				energy += 0.02;
 				energy = Math.min(10, energy);
-				energyDiv.innerHTML = "Energy: " + (Math.floor(energy)) + " (5 to shoot)";
-				if (player != null) {
+				if (Math.floor(energy) != Math.floor(oldEnergy)) {
+					energyDiv.innerHTML = "Energy: " + (Math.floor(energy)) + " (5 to shoot)";
+				}
+				if (player != null && oldHealth != player.player.stats.Health) {
 					healthDiv.innerHTML = "Health: " + player.player.stats.Health + 
 						(player.player.stats.Health <= 0 ? "  You Lost!" : "");
 				}
+				oldHealth = player.player.stats.Health;
+
 				if (enemy && enemy.player.stats.Health <= 0) {
 					enemy = null;
 					score++;
@@ -434,6 +441,9 @@
 			function onDocumentMouseUp( event ) {
 				event.preventDefault();
 //				controls.enabled = true;
+
+				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
 				if (SELECTED != null && SELECTED.entity != null && SELECTED.entity.agent != null) {
 					if (energy >= 5 && SELECTED.entity.agent.slingshotAction) {
