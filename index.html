@@ -406,8 +406,8 @@
 				event.preventDefault();
 
 				if (event.touches !== undefined) {
-					mouse.x = ( event.touches[0].clientX / window.innerWidth ) * 2 - 1;
-					mouse.y = - ( event.touches[0].clientY / window.innerHeight ) * 2 + 1;
+					mouse.x = ( event.touches.item(0).clientX / window.innerWidth ) * 2 - 1;
+					mouse.y = - ( event.touches.item(0).clientY / window.innerHeight ) * 2 + 1;
 				} else {
 					mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 					mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
