@@ -146,7 +146,7 @@
 //				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
 //				camera.position.set( 0, 2, 50 );
 
-				camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 0.5, 3000 );
+				camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 0.5, 3000000 );
 				camera.position.set( 0, 750, 2000 );
 				camera.lookAt(new THREE.Vector3(0, 0, 0));
 
@@ -210,7 +210,7 @@
 	            newObj.position.z = SCALE * -13;
 	            newObj.scale.x = SCALE * 100;
 	            newObj.scale.z = SCALE * 30;
-	            newObj.scale.y = SCALE;
+	            newObj.scale.y = SCALE / 3;
 	            scene.add(newObj);
 
 				//--
@@ -500,6 +500,7 @@
 				var isEnemy = layer == 2;
 				var ent = Entity.createCombatAgent(null, x, y, z, mesh, isEnemy,
 					isEnemy ? (SCALE * 12 + score) : null, isEnemy ? SCALE * 2 : null);
+				ent.offsetY = SCALE * 0.2;
 				ent.h *= 6;
 				ent.dirX = dirX;
 				ent.layer = layer;
