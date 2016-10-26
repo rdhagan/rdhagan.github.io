@@ -197,12 +197,9 @@
 				renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
 				renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUp, false );
 
-				function preventBehavior(e) {
-				    e.preventDefault(); 
-				    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-					mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-				};
-				document.addEventListener("touchmove", preventBehavior, false);
+				renderer.domElement.addEventListener("touchmove", onDocumentMouseMove, false);
+				renderer.domElement.addEventListener("touchstart", onDocumentMouseDown, false);
+				renderer.domElement.addEventListener("touchend", onDocumentMouseUp, false);
 
 				// ground
 //				var texture2 = new THREE.TextureLoader().load( 'examples/textures/crate_color8.tga' );
