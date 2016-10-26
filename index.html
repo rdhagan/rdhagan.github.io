@@ -194,12 +194,10 @@
 
 				window.addEventListener( 'resize', onWindowResize, false );
 
-				renderer.domElement.addEventListener( 'mousemove', onDocumentMouseMove, false );
 				renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
-				renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUp, false );
 
 				renderer.domElement.addEventListener("touchmove", onDocumentMouseMove, false);
-				renderer.domElement.addEventListener("touchstart", onDocumentMouseDown, false);
+				renderer.domElement.addEventListener("touchstart", onDocumentTouchStart, false);
 				renderer.domElement.addEventListener("touchend", onDocumentMouseUp, false);
 
 				// ground
@@ -406,16 +404,33 @@
 				event.preventDefault();
 
 				if (event.changedTouches !== undefined) {
-					mouse.x = ( event.changedTouches.item(0).pageX / window.innerWidth ) * 2 - 1;
-					mouse.y = - ( event.changedTouches.item(0).pageY / window.innerHeight ) * 2 + 1;
+					mouse.x = ( event.changedTouches[0].clientX / window.innerWidth ) * 2 - 1;
+					mouse.y = - ( event.changedTouches[0].clientY / window.innerHeight ) * 2 + 1;
 				} else {
 					mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 					mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 				}
 			}
 
-			function onDocumentMouseDown( event ) {
+			function onDocumentTouchStart( event ) {
 				event.preventDefault();
+				mouse.x = ( event.changedTouches[0].clientX / window.innerWidth ) * 2 - 1;
+				mouse.y = - ( event.changedTouches[0].clientY / window.innerHeight ) * 2 + 1;
+
+				mouseDownPos.x = mouse.x;
+				mouseDownPos.y = mouse.y;
+				SELECTED = player.obj;
+
+				container.style.cursor = 'move';
+			}
+
+			function onDocumentMouseDown( event ) {
+				renderer.domElement.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUp, false );
+
+				event.preventDefault();
+				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 				mouseDownPos.x = mouse.x;
 				mouseDownPos.y = mouse.y;
 //				raycaster.setFromCamera( mouse, camera );
@@ -443,10 +458,13 @@
 			}
 
 			function onDocumentMouseUp( event ) {
+				renderer.domElement.removeEventListener( 'mousemove', onDocumentMouseMove, false );
+				renderer.domElement.removeEventListener( 'mouseup', onDocumentMouseUp, false );
+
 				event.preventDefault();
 //				controls.enabled = true;
 
-				if (SELECTED != null && SELECTED.entity != null && SELECTED.entity.agent != null) {
+				if (SELECTED != null && SELECTED.entity != null && SELECTED.entity.agent != null && !SELECTED.entity.destroyed) {
 					if (energy >= 5 && SELECTED.entity.agent.slingshotAction) {
 						var data = null;
 						var delta = new THREE.Vector3(mouseDownPos.x - mouse.x, mouseDownPos.y - mouse.y, 0);
