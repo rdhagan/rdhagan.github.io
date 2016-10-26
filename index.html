@@ -418,28 +418,28 @@
 				event.preventDefault();
 				mouseDownPos.x = mouse.x;
 				mouseDownPos.y = mouse.y;
-				raycaster.setFromCamera( mouse, camera );
+//				raycaster.setFromCamera( mouse, camera );
 				var intersects = raycaster.intersectObjects( scene.children );
 
-				if ( intersects.length > 0 ) {
+//				if ( intersects.length > 0 ) {
 //					controls.enabled = false;
-					SELECTED = intersects[ 0 ].object;
+					SELECTED = player.obj; //intersects[ 0 ].object;
 
 //					plane.setFromNormalAndCoplanarPoint(
 //							camera.getWorldDirection( plane.normal ),
 //							SELECTED.position );
 
-					if ( raycaster.ray.intersectPlane( plane, intersection ) ) {
-						offset.copy( intersection ).sub( SELECTED.position );
+//					if ( raycaster.ray.intersectPlane( plane, intersection ) ) {
+//						offset.copy( intersection ).sub( SELECTED.position );
 //						SELECTED.position = intersection;
 //						SELECTED.entity.setPosition(SELECTED.position);
 
 						// if (SELECTED.entity.agent != null) {
 						// 	SELECTED.entity.agent.tapAction.run(SELECTED.entity);
 						// }
-					}
+//					}
 					container.style.cursor = 'move';
-				}
+//				}
 			}
 
 			function onDocumentMouseUp( event ) {
