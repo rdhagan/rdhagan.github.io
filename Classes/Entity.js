@@ -195,10 +195,10 @@ Entity.createCombatAgent = function(prefab, x, y, z, obj, autoShooting, force, f
     var shootAction = new ShootAction();
     shootAction.force = force ? force : 10;
     shootAction.forceY = forceY ? forceY : 2;
-    shootAction.destroyMs = 5000;
+    shootAction.destroyMs = 30000;
     if (autoShooting) {
         agent.action = shootAction;
-        agent.actionIntervalMs = 7000;
+        agent.actionIntervalMs = 9000;
     } else {
         agent.slingshotAction = shootAction;        
     }
