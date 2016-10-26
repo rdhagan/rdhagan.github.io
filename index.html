@@ -33,7 +33,7 @@
 			#health {
 				color: #000;
 				position: absolute;
-				bottom: 30px;
+				bottom: 10px;
 				width: 100%;
 				text-align: center;
 				z-index: 100;
@@ -42,7 +42,7 @@
 			#energy {
 				color: #000;
 				position: absolute;
-				bottom: 10px;
+				bottom: 30px;
 				width: 100%;
 				text-align: center;
 				z-index: 100;
@@ -369,7 +369,8 @@
 				energy += 1.7 * dt;
 				energy = Math.min(10, energy);
 				if (Math.floor(energy) != Math.floor(oldEnergy)) {
-					energyDiv.innerHTML = "Energy: " + (Math.floor(energy)) + " (5 to shoot)";
+					energyDiv.style.color = (energy >= 5) ? "#ffff00" : "#000000";
+					energyDiv.innerHTML = "<b>Energy: " + (Math.floor(energy)) + " (5 to shoot)</b>";
 				}
 				if (player != null && oldHealth != player.player.stats.Health) {
 					healthDiv.innerHTML = "Health: " + player.player.stats.Health + 
