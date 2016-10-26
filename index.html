@@ -198,10 +198,9 @@
 				renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
 				renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUp, false );
 
-				function preventBehavior(e) {
-				    e.preventDefault(); 
-				};
-				document.addEventListener("touchmove", preventBehavior, false);
+				renderer.domElement.addEventListener("touchmove", onDocumentMouseMove, false);
+				renderer.domElement.addEventListener("touchstart", onDocumentMouseDown, false);
+				renderer.domElement.addEventListener("touchend", onDocumentMouseUp, false);
 
 				// ground
 //				var texture2 = new THREE.TextureLoader().load( 'examples/textures/crate_color8.tga' );
@@ -406,8 +405,13 @@
 			function onDocumentMouseMove( event ) {
 				event.preventDefault();
 
-				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+				if (event.touches !== undefined) {
+					mouse.x = ( event.touches[0].clientX / window.innerWidth ) * 2 - 1;
+					mouse.y = - ( event.touches[0].clientY / window.innerHeight ) * 2 + 1;
+				} else {
+					mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+					mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+				}
 			}
 
 			function onDocumentMouseDown( event ) {
@@ -441,9 +445,6 @@
 			function onDocumentMouseUp( event ) {
 				event.preventDefault();
 //				controls.enabled = true;
-
-				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
 				if (SELECTED != null && SELECTED.entity != null && SELECTED.entity.agent != null) {
 					if (energy >= 5 && SELECTED.entity.agent.slingshotAction) {
