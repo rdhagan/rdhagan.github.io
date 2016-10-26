@@ -15,9 +15,10 @@ DestroyAction.run = function(obj, data) {
 function ShootAction(type) {
 	this.prefab = null;
 	this.force = 0;
+    this.forceY = 0;
     this.destroyMs = 0;
     this.run = function(obj, data) {
-    	var newObj = Entity.createObject(this.prefab, obj.x, obj.y, obj.z);
+    	var newObj = Entity.createObject(this.prefab, obj.x, obj.y + obj.h * 0.5, obj.z);
     	newObj.creator = obj;
     	newObj.layer = obj.layer;
         newObj.dirX = obj.dirX;
@@ -25,7 +26,7 @@ function ShootAction(type) {
         newObj.dirZ = obj.dirZ;
         if (this.force != 0) {
             newObj.velX = newObj.dirX * this.force;
-            newObj.velY = newObj.dirY * this.force;
+            newObj.velY = newObj.dirY * this.force + this.forceY;
             newObj.velZ = newObj.dirZ * this.force;            
         }
 

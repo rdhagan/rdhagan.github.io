@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>three.js webgl - FBX loader</title>
+		<title>Test</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
@@ -21,14 +21,44 @@
 				z-index: 100;
 				display:block;
 			}
+			#score {
+				color: #fff;
+				position: absolute;
+				top: 30px;
+				width: 100%;
+				text-align: center;
+				z-index: 100;
+				display:block;
+			}
+			#health {
+				color: #fff;
+				position: absolute;
+				bottom: 30px;
+				width: 100%;
+				text-align: center;
+				z-index: 100;
+				display:block;
+			}
+			#energy {
+				color: #fff;
+				position: absolute;
+				bottom: 10px;
+				width: 100%;
+				text-align: center;
+				z-index: 100;
+				display:block;
+			}
 			#info a, .button { color: #f00; font-weight: bold; text-decoration: underline; cursor: pointer }
 		</style>
 	</head>
 
 	<body>
 		<div id="info">
-		<a href="http://threejs.org" target="_blank">three.js</a> - FBXLoader test
+		Pull back on character to attack!
 		</div>
+		<div id="score">Score: 0</div>
+		<div id="health">Health: 10</div>
+		<div id="energy">Energy: 0 (5 to shoot)</div>
 
 		<script src="Three/build/three.js"></script>
 
@@ -40,6 +70,8 @@
 		<script src="js/Detector.js"></script>
 		<script src="js/libs/stats.min.js"></script>
 
+		<script src="js/loaders/DDSLoader.js"></script>
+
 		<script src="Classes/Entity.js"></script>
 		<script src="Classes/Player.js"></script>
 		<script src="Classes/CombatAgent.js"></script>
@@ -49,6 +81,9 @@
 		<script>
 
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+			var SCREEN_WIDTH = window.innerWidth;
+			var SCREEN_HEIGHT = window.innerHeight;
 
 			var container, stats, controls;
 			var camera, scene = new THREE.Scene(), renderer;
@@ -69,6 +104,18 @@
 
 			var entityScene = new Scene(scene);
 
+			var jsonLoader = new THREE.JSONLoader();
+
+			var enemy, player, wall;
+			var loadedMeshes = {};
+
+			var energy = 5;
+			var energyDiv = document.getElementById("energy");
+			var health = 10;
+			var healthDiv = document.getElementById("health");
+			var score = 0;
+			var scoreDiv = document.getElementById("score");
+
 			init();
 
 			function init() {
@@ -76,108 +123,48 @@
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
-				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+//				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+//				camera.position.set( 0, 2, 50 );
+
+				camera = new THREE.PerspectiveCamera( 75, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 100000 );
+				camera.position.y = 10;
+				camera.position.z = 20;
+
+				var ambient = new THREE.AmbientLight( 0x221100 );
+				scene.add( ambient );
+
+				var directionalLight = new THREE.DirectionalLight( 0xffeedd, 1.5 );
+				directionalLight.position.set( 0, -70, 100 ).normalize();
+				scene.add( directionalLight );
 
 				// grid
-//				var gridHelper = new THREE.GridHelper( 14, 28, 0x303030, 0x303030 );
-//				gridHelper.position.set( 0, - 0.04, 0 );
-//				scene.add( gridHelper );
+				var gridHelper = new THREE.GridHelper( 14, 28, 0x303030, 0x303030 );
+				gridHelper.position.set( 0, - 0.04, 0 );
+				scene.add( gridHelper );
 
 				// stats
-				stats = new Stats();
-				container.appendChild( stats.dom );
-
-				// model
-				loadingManager.onProgress = function( item, loaded, total ) {
-					console.log( item, loaded, total );
-				};
-
-				var onProgress = function( xhr ) {
-
-					if ( xhr.lengthComputable ) {
-
-						var percentComplete = xhr.loaded / xhr.total * 100;
-						console.log( Math.round( percentComplete, 2 ) + '% downloaded' );
-
-					}
-
-				};
-
-				var onError = function( xhr ) {
-				};
+				// stats = new Stats();
+				// container.appendChild( stats.dom );
 
 				//--
-				var ent = Entity.createCombatAgent(null, -6, 0, 0);
+/*				var ent = Entity.createCombatAgent(null, -6, 0, 0);
 //				ent.velX = .1;
 				ent.dirX = 1;
 				ent.layer = 1;
 				ent = Entity.createCombatAgent(null, 6, 0, 0);
 //				ent.velX = -.1;
 				ent.dirX = -1;
-				ent.layer = 2;
-				//--
+				ent.layer = 2;*/
 
-/*				var loader = new THREE.FBXLoader( loadingManager );
-				loader.load( 'https://threejs.org/examples/models/fbx/xsi_man_skinning.fbx', //'models/fbx/xsi_man_skinning.fbx', 
-					function( object ) {
-//						object.scale.x = object.scale.y = object.scale.z = 0.1;
-						var ent2 = Entity.createCombatAgent(null, -6, 0, 0, object);
-						ent2.velX = .1;
-						ent2.dirX = 1;
-						ent2.layer = 1;
-						ent2 = Entity.createCombatAgent(null, 6, 0, 0, object.clone());
-						ent2.velX = -.1;
-						ent2.dirX = -1;
-						ent2.layer = 2;
-
-//						scene.add( object );
-				}, onProgress, onError );*/
-
-/*				var loader = new THREE.FBXLoader( manager );
-				loader.load( 'https://threejs.org/examples/models/fbx/xsi_man_skinning.fbx', //'models/fbx/xsi_man_skinning.fbx', 
-					function( object ) {
-
-					// ent = new Entity(object);
-			  //       ent.velocity.x = 1;
-			  //       ent.velocity.y = 2;
-			  //       entityScene.addEntity(ent);
-
-					object.traverse( function( child ) {
-
-						if ( child instanceof THREE.Mesh ) {
-
-							// pass
-
-						}
-
-						if ( child instanceof THREE.SkinnedMesh ) {
-
-							if ( child.geometry.animations !== undefined || child.geometry.morphAnimations !== undefined ) {
-
-								child.mixer = new THREE.AnimationMixer( child );
-								mixers.push( child.mixer );
-
-								var action = child.mixer.clipAction( child.geometry.animations[ 0 ] );
-								action.play();
-
-							}
-
-						}
-
-					} );
-
-					scene.add( object );
-
-
-				}, onProgress, onError );*/
+				loadModel("examples/obj/female02/Female02_slim.js", //"examples/obj/male02/Male02_dds.js",       
+					1, 1, -6, 0, 0, 0.03);
+				spawnEnemy();
 
 				renderer = new THREE.WebGLRenderer();
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
-				renderer.setClearColor( 0x000000 );
+				renderer.setClearColor( 0x995500 );
 				container.appendChild( renderer.domElement );
-
-				camera.position.set( 0, 2, 25 );
 
 				// controls, camera
 				// controls = new THREE.OrbitControls( camera, renderer.domElement );
@@ -192,6 +179,24 @@
 
 				animate();
 
+			}
+
+			function spawnWall() {
+				if (wall != null) {
+					wall.destroyed = true;
+				}
+				var material = new THREE.MeshBasicMaterial();
+	            var newObj = new THREE.Mesh( new THREE.BoxGeometry( 1, 1, 1 ), material );
+	            var height = 4 + Math.random() * 4;
+	            newObj.scale.y = height;
+				wall = Entity.createObject(null, Math.random() * 2 - 1, 0, 0, newObj);
+				wall.h = height;
+				wall.layer = 2;
+				wall.offsetY = height * 0.5;
+			}
+
+			function spawnEnemy() {
+				loadModel("examples/obj/female02/Female02_slim.js", -1, 2, 4 + Math.random() * 5, 0, 0, 0.03);
 			}
 
 			function onWindowResize() {
@@ -219,7 +224,25 @@
 
 				}
 
-				stats.update();
+				if (stats) {
+					stats.update();
+				}
+
+				entityScene.update(0.03);
+				energy += 0.02;
+				energy = Math.min(10, energy);
+				energyDiv.innerHTML = "Energy: " + (Math.floor(energy)) + " (5 to shoot)";
+				if (player != null) {
+					healthDiv.innerHTML = "Health: " + player.player.stats.Health + 
+						(player.player.stats.Health <= 0 ? "  You Lost!" : "");
+				}
+				if (enemy && enemy.player.stats.Health <= 0) {
+					enemy = null;
+					score++;
+					scoreDiv.innerHTML = "Score: " + score;
+					spawnWall();
+					setTimeout(spawnEnemy, 4000);
+				}
 
 				render();
 
@@ -228,7 +251,6 @@
 			function render() {
 
 				renderer.render( scene, camera );
-				entityScene.update(0.03);
 			}
 
 			function onDocumentMouseMove( event ) {
@@ -238,38 +260,6 @@
 				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
 				raycaster.setFromCamera( mouse, camera );
-
-/*				var octreeObjects;
-				var numObjects;
-				var numFaces = 0;
-				var intersections;
-
-				// if ( useOctree ) {
-				// 	octreeObjects = octree.search( raycaster.ray.origin, raycaster.ray.far, true, raycaster.ray.direction );
-				// 	intersections = raycaster.intersectOctreeObjects( octreeObjects );
-				// 	numObjects = octreeObjects.length;
-				// 	for ( var i = 0, il = numObjects; i < il; i++ ) {
-				// 		numFaces += octreeObjects[ i ].faces.length;
-				// 	}
-				// }
-				// else {
-					intersections = raycaster.intersectObjects( objects );
-					numObjects = objects.length;
-					numFaces = totalFaces;
-				//}
-
-				if ( intersections.length > 0 ) {
-					if ( intersected != intersections[ 0 ].object ) {
-//						if ( intersected ) intersected.material.color.setHex( baseColor );
-
-						intersected = intersections[ 0 ].object;
-//						intersected.material.color.setHex( intersectColor );
-					}
-				}
-				else if ( intersected ) {
-//					intersected.material.color.setHex( baseColor );
-					intersected = null;
-				}*/
 			}
 
 			function onDocumentMouseDown( event ) {
@@ -304,8 +294,8 @@
 				event.preventDefault();
 //				controls.enabled = true;
 
-//				if ( INTERSECTED ) {
-					if (SELECTED != null && SELECTED.entity != null && SELECTED.entity.agent != null) {
+				if (SELECTED != null && SELECTED.entity != null && SELECTED.entity.agent != null) {
+					if (energy >= 5) {
 						var data = null;
 						var delta = new THREE.Vector3(mouseDownPos.x - mouse.x, mouseDownPos.y - mouse.y, 0);
 						var force = 20;
@@ -318,9 +308,10 @@
 							}
 //						}
 						SELECTED.entity.agent.slingshotAction.run(SELECTED.entity, data);
+						energy -= 5;
 					}
-					SELECTED = null;
-//				}
+				}
+				SELECTED = null;
 				container.style.cursor = 'auto';
 			}
 
@@ -338,6 +329,42 @@
 						ent.setObject(object);
 					}
 				}, null, null );
+			}
+
+			function loadModel(url, dirX, layer, x, y, z, scale) {
+				if (loadedMeshes[url]) {
+					initializeMesh(loadedMeshes[url].clone(), x, y, z, dirX, layer, scale)
+				} else {
+					var callback = function ( geometry, materials ) { createScene( url, geometry, materials, dirX, layer, x, y, z, scale ) };
+					jsonLoader.load(url, callback);
+				}
+			}
+
+			function createScene( url, geometry, materials, dirX, layer, x, y, z, scale ) {
+				zmesh = new THREE.Mesh( geometry, new THREE.MultiMaterial( materials ) );
+				loadedMeshes[url] = zmesh;
+
+				initializeMesh(zmesh.clone(), x, y, z, dirX, layer, scale);
+			}
+
+			function initializeMesh(mesh, x, y, z, dirX, layer, scale) {
+				mesh.lookAt(new THREE.Vector3(dirX, 0, 0));
+				mesh.position.set( x, y, z );
+				mesh.scale.set( scale, scale, scale );
+				scene.add(mesh);
+
+				var isEnemy = layer == 2;
+				var ent = Entity.createCombatAgent(null, x, y, z, mesh, isEnemy,
+					isEnemy ? (12 + score) : null, isEnemy ? 2 : null);
+				ent.h = 6;
+				ent.dirX = dirX;
+				ent.layer = layer;
+
+				if (layer == 2) {
+					enemy = ent;
+				} else {
+					player = ent;
+				}
 			}
 		</script>
 
