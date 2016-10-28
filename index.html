@@ -150,7 +150,7 @@
 				filterparam: 1
 			};
 
-			var waterNormals, mirrorMesh;
+			var waterNormals, mirrorMesh, water;
 
 			var lastUpdate = new Date().getTime();
 			var startTime = new Date().getTime();
@@ -445,8 +445,10 @@
 				// sphere.rotation.x = time * 0.5;
 				// sphere.rotation.z = time * 0.51;
 
-				water.material.uniforms.time.value += 1.0 / 60.0;
-				water.render();
+				if (water != null) {
+					water.material.uniforms.time.value += 1.0 / 60.0;
+					water.render();
+				}
 			}
 
 			function onDocumentMouseMove( event ) {

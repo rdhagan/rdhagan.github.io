@@ -376,7 +376,9 @@
 					healthDiv.innerHTML = "Health: " + player.player.stats.Health + 
 						(player.player.stats.Health <= 0 ? "  You Lost!" : "");
 				}
-				oldHealth = player.player.stats.Health;
+				if (player != null) {
+					oldHealth = player.player.stats.Health;
+				}
 
 				if (enemy && enemy.player.stats.Health <= 0) {
 					enemy = null;
