@@ -12,6 +12,7 @@ function Entity(obj, name) {
     this.layer = 0;
     this.destroyOnHitGround = false;
     this.destroyed = false;
+    this.justCollided = false;
     this.offsetY = 0;
     if (obj) {
         obj.entity = this;
@@ -19,7 +20,7 @@ function Entity(obj, name) {
     this.dirX = this.dirY = this.dirZ = 0;
     this.velX = this.velY = this.velZ = 0;
     this.accX = this.accZ = 0;
-    this.accY = -2 * SCALE;
+    this.accY = -20 * SCALE;
     this.moving = true;
     this.collideHandlers = [];  // function (ent1, ent2)
 
@@ -97,6 +98,8 @@ function Entity(obj, name) {
     	other.x = other.previousX;
     	other.y = other.previousY;
     	other.z = other.previousZ;    	
+        this.justCollided = other.justCollided = true;
+        this.velX = other.velX = 0;
 //        this.velX = this.velY = this.velZ = 0;
 //        other.velX = other.velY = other.velZ = 0;
     	for (var collide in this.collideHandlers) {
@@ -104,6 +107,7 @@ function Entity(obj, name) {
     	}
 	}
     this.update = function(dt) {
+        this.justCollided = false;
         this.previousX = this.x;
         this.previousY = this.y;
         this.previousZ = this.z;
@@ -122,7 +126,7 @@ function Entity(obj, name) {
     		}
             if (this.y < 0) {
                 this.y = 0;
-                this.velY = 0;
+                this.velX = this.velY = this.velZ = 0;
                 if (this.destroyOnHitGround) {
                     this.destroyed = true;
                 }
@@ -143,6 +147,20 @@ Entity.destroyOnCollide = function(ent1, ent2) {
 Entity.damageOnCollide = function(ent1, ent2) {
     if (ent2.player != null) {
         ent2.player.dealDamage(4); // TODO
+    }
+}
+
+Entity.killLowerOnCollide = function(ent1, ent2) {
+    if (ent1.y <= ent2.y && ent1.player != null) {
+        ent1.player.dealDamage(100000);
+    } else if (ent2.player != null) {
+        ent2.player.dealDamage(100000);
+    }
+}
+
+Entity.killOnCollide = function(ent1, ent2) {
+    if (ent2.player != null) {
+        ent2.player.dealDamage(100000);
     }
 }
 
@@ -185,33 +203,43 @@ Entity.createObject = function(prefab, x, y, z, obj) {
     return ent;
 }
 
-Entity.createCombatAgent = function(prefab, x, y, z, obj, autoShooting, force, forceY) {
+Entity.createCombatAgent = function(prefab, x, y, z, obj, autoShooting, force, forceY, slingshotShoot, shootIntervalMs) {
     var ent = Entity.createObject(prefab, x, y, z, obj);
     ent.name = "CombatAgent";
     ent.player = new Player(ent);
+    if (!autoShooting) {
+        ent.collideHandlers.push(Entity.killOnCollide);
+    }
     var agent = ent.agent = new CombatAgent(ent);
     
     // shot
-    var shootAction = new ShootAction();
-    shootAction.force = force ? force : 10;
-    shootAction.forceY = forceY ? forceY : 2;
-    shootAction.destroyMs = 30000;
-    if (autoShooting) {
-        agent.action = shootAction;
-        agent.actionIntervalMs = 4500;
+    if (autoShooting || slingshotShoot) {
+        var shootAction = autoShooting ? new ShootTwoWayAction() : new ShootAction();
+        shootAction.force = force ? force : 30;
+        shootAction.forceY = forceY ? forceY : 10;
+        shootAction.destroyMs = 30000;
+        if (autoShooting) {
+            agent.action = shootAction;
+            agent.actionIntervalMs = shootIntervalMs;
+        } else {
+            agent.slingshotAction = shootAction;        
+        }
+        agent.start();
+
+        var material = new THREE.MeshBasicMaterial();
+        var prefabObj = new THREE.Mesh( new THREE.SphereGeometry( 0.25 * SCALE, 20, 10 ), material );
+        prefabObj.w = prefabObj.h = prefabObj.d = SCALE;
+        var prefab = new Entity(prefabObj);
+        prefab.destroyOnHitGround = true;
+        prefab.collideHandlers.push(Entity.damageOnCollide);
+        prefab.collideHandlers.push(Entity.destroyOnCollide);
+        shootAction.prefab = prefab;
     } else {
-        agent.slingshotAction = shootAction;        
+        var forceAction = new ForceAction();
+        forceAction.mustBeAtRest = true;
+        forceAction.force = force ? force : 50;
+        forceAction.forceY = forceY ? forceY : 2;
+        agent.slingshotAction = forceAction;
     }
-    agent.start();
-
-    var material = new THREE.MeshBasicMaterial();
-    var prefabObj = new THREE.Mesh( new THREE.SphereGeometry( 0.25 * SCALE, 20, 10 ), material );
-    prefabObj.w = prefabObj.h = prefabObj.d = SCALE;
-    var prefab = new Entity(prefabObj);
-    prefab.destroyOnHitGround = true;
-    prefab.collideHandlers.push(Entity.damageOnCollide);
-    prefab.collideHandlers.push(Entity.destroyOnCollide);
-    shootAction.prefab = prefab;
-
     return ent;
 }

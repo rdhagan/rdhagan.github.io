@@ -56,10 +56,6 @@
 		<div id="info">
 		Drag character backwards to launch attack!
 		</div>
-		<div id="info">
-		<a href="indexShoot.html" target="_blank">Shooting Game</a>
-		</div>
-
 		<div id="score">Score: 0</div>
 		<div id="health">Health: 10</div>
 		<div id="energy">Energy: 0 (5 to shoot)</div>
@@ -126,8 +122,6 @@
 			var score = 0;
 			var scoreDiv = document.getElementById("score");
 
-			var avgFrameTime = 0;
-
 			//--
 			var sphere;
 
@@ -141,10 +135,9 @@
 				filterparam: 1
 			};
 
-			var waterNormals, mirrorMesh;
+			var waterNormals;
 
 			var lastUpdate = new Date().getTime();
-			var startTime = new Date().getTime();
 
 			init();
 
@@ -172,9 +165,9 @@
 				// gridHelper.position.set( 0, - 0.04, 0 );
 				// scene.add( gridHelper );
 
-				stats
-				stats = new Stats();
-				container.appendChild( stats.dom );
+				// stats
+				// stats = new Stats();
+				// container.appendChild( stats.dom );
 
 				//--
 /*				var ent = Entity.createCombatAgent(null, -6, 0, 0);
@@ -219,10 +212,6 @@
 	            newObj.scale.z = SCALE * 30;
 	            newObj.scale.y = SCALE / 3;
 	            scene.add(newObj);
-
-	            // walls
-	            createWall(new THREE.Vector3(SCALE * -14, 0, 0), new THREE.Vector3(2 * SCALE, 100 * SCALE, 2 * SCALE));
-	            createWall(new THREE.Vector3(SCALE * 14, 0, 0), new THREE.Vector3(2 * SCALE, 100 * SCALE, 2 * SCALE));
 
 				//--
 				var textureLoader = new THREE.TextureLoader();
@@ -324,20 +313,6 @@
 				animate();
 			}
 
-			function createWall(pos, size) {
-				var material = new THREE.MeshBasicMaterial();
-	            var newObj = new THREE.Mesh( new THREE.BoxGeometry( 1, 1, 1 ), material );
-	            newObj.scale.x = size.x;
-	            newObj.scale.y = size.y;
-	            newObj.scale.z = size.z;	            
-				var newWall = Entity.createObject(null, pos.x, pos.y, pos.z, newObj);
-				newWall.w = size.x;
-				newWall.h = size.y;
-				newWall.d = size.z;
-				newWall.layer = 0;
-				newWall.offsetY = size.y * 0.5;				
-			}
-
 			function spawnWall() {
 				if (wall != null) {
 					wall.destroyed = true;
@@ -354,7 +329,7 @@
 			}
 
 			function spawnEnemy() {
-				loadModel("examples/obj/female02/Female02_slim.js", -1, 2, SCALE * 0 + SCALE * (Math.random() * 20 - 10), 0, 0, 0.03 * SCALE);
+				loadModel("examples/obj/female02/Female02_slim.js", -1, 2, SCALE * 8 + Math.random() * 5, 0, 0, 0.03 * SCALE);
 			}
 
 			function onWindowResize() {
@@ -372,13 +347,6 @@
 				var now = new Date().getTime();
 			    var dt = (now - lastUpdate) / 1000.0;
 			    lastUpdate = now;
-			    avgFrameTime = dt * 0.1 + avgFrameTime * 0.9;
-			    var timeSinceStart = now - startTime;
-
-			    if (timeSinceStart > 3000 && avgFrameTime > 50 && mirrorMesh != null && player != null) {
-			    	scene.remove(mirrorMesh);
-			    	mirrorMesh = null;
-			    }
 
 				requestAnimationFrame( animate );
 
@@ -408,9 +376,7 @@
 					healthDiv.innerHTML = "Health: " + player.player.stats.Health + 
 						(player.player.stats.Health <= 0 ? "  You Lost!" : "");
 				}
-				if (player != null) {
-					oldHealth = player.player.stats.Health;
-				}
+				oldHealth = player.player.stats.Health;
 
 				if (enemy && enemy.player.stats.Health <= 0) {
 					enemy = null;
@@ -508,12 +474,12 @@
 					if (energy >= 5 && SELECTED.entity.agent.slingshotAction) {
 						var data = null;
 						var delta = new THREE.Vector3(mouseDownPos.x - mouse.x, mouseDownPos.y - mouse.y, 0);
-						var force = 40 * SCALE;
+						var force = 120 * SCALE * delta.length();
 //						if (delta.length > 0) {
 //							force = Math.min(10, delta.length);
 //							delta.normalize();
 							data = {
-								dir: delta,
+								dir: delta.normalize(),
 								value: force
 							}
 //						}
@@ -565,7 +531,7 @@
 
 				var isEnemy = layer == 2;
 				var ent = Entity.createCombatAgent(null, x, y, z, mesh, isEnemy,
-					isEnemy ? (SCALE * 12 + score) : null, isEnemy ? SCALE * 10 : null, false, 3000);
+					isEnemy ? (SCALE * 20 + score) : null, isEnemy ? SCALE * 8 : null, true, 4500);
 				ent.offsetY = SCALE * 0.2;
 				ent.h *= 6;
 				ent.dirX = dirX;
