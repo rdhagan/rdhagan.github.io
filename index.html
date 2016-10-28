@@ -63,7 +63,7 @@
 
 	<body>
 		<div id="info">
-		Drag character backwards to launch attack!
+		Drag character backwards to launch!
 		</div>
 		<div id="info2">
 		<a href="indexShoot.html" target="_blank">Shooting Game</a>
@@ -181,9 +181,9 @@
 				// gridHelper.position.set( 0, - 0.04, 0 );
 				// scene.add( gridHelper );
 
-				stats
-				stats = new Stats();
-				container.appendChild( stats.dom );
+//				stats
+				// stats = new Stats();
+				// container.appendChild( stats.dom );
 
 				//--
 /*				var ent = Entity.createCombatAgent(null, -6, 0, 0);
@@ -234,7 +234,7 @@
 	            createWall(new THREE.Vector3(SCALE * 14, 0, 0), new THREE.Vector3(2 * SCALE, 100 * SCALE, 2 * SCALE));
 
 				//--
-				var textureLoader = new THREE.TextureLoader();
+/*				var textureLoader = new THREE.TextureLoader();
 				waterNormals = textureLoader.load( 'examples/textures/waternormals.jpg' );
 				waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping;
 
@@ -258,7 +258,7 @@
 				mirrorMesh.add( water );
 				mirrorMesh.rotation.x = - Math.PI * 0.5;
 				scene.add( mirrorMesh );
-
+*/
 
 				// load skybox
 
