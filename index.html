@@ -15,7 +15,7 @@
 			#info {
 				color: #000;
 				position: absolute;
-				top: 10px;
+				top: 100px;
 				width: 100%;
 				text-align: center;
 				z-index: 100;
@@ -24,7 +24,7 @@
 			#info2 {
 				color: #000;
 				position: absolute;
-				top: 50px;
+				top: 150px;
 				width: 100%;
 				text-align: center;
 				z-index: 100;
@@ -33,7 +33,7 @@
 			#score {
 				color: #000;
 				position: absolute;
-				top: 30px;
+				top: 130px;
 				width: 100%;
 				text-align: center;
 				z-index: 100;
@@ -42,7 +42,7 @@
 			#health {
 				color: #000;
 				position: absolute;
-				bottom: 10px;
+				bottom: 110px;
 				width: 100%;
 				text-align: center;
 				z-index: 100;
@@ -51,7 +51,7 @@
 			#energy {
 				color: #000;
 				position: absolute;
-				bottom: 30px;
+				bottom: 130px;
 				width: 100%;
 				text-align: center;
 				z-index: 100;
@@ -166,7 +166,7 @@
 //				camera.position.set( 0, 2, 50 );
 
 				camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 0.5, 3000000 );
-				camera.position.set( 0, 750, 2000 );
+				camera.position.set( 0, 750, 4000 );
 				camera.lookAt(new THREE.Vector3(0, 0, 0));
 
 				var ambient = new THREE.AmbientLight( 0x221100 );
@@ -262,7 +262,7 @@
 
 				// load skybox
 
-				var cubeMap = new THREE.CubeTexture( [] );
+/*				var cubeMap = new THREE.CubeTexture( [] );
 				cubeMap.format = THREE.RGBFormat;
 
 				var loader = new THREE.ImageLoader();
@@ -325,7 +325,7 @@
 					shininess: 100,
 					envMap: cubeMap
 				} );
-
+*/
 //				sphere = new THREE.Mesh( geometry, material );
 //				scene.add( sphere );
 

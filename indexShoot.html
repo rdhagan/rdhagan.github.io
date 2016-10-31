@@ -15,7 +15,7 @@
 			#info {
 				color: #000;
 				position: absolute;
-				top: 10px;
+				top: 110px;
 				width: 100%;
 				text-align: center;
 				z-index: 100;
@@ -24,7 +24,7 @@
 			#score {
 				color: #000;
 				position: absolute;
-				top: 30px;
+				top: 130px;
 				width: 100%;
 				text-align: center;
 				z-index: 100;
@@ -33,7 +33,7 @@
 			#health {
 				color: #000;
 				position: absolute;
-				bottom: 10px;
+				bottom: 110px;
 				width: 100%;
 				text-align: center;
 				z-index: 100;
@@ -42,7 +42,7 @@
 			#energy {
 				color: #000;
 				position: absolute;
-				bottom: 30px;
+				bottom: 130px;
 				width: 100%;
 				text-align: center;
 				z-index: 100;
@@ -135,7 +135,7 @@
 				filterparam: 1
 			};
 
-			var waterNormals;
+			var waterNormals, water;
 
 			var lastUpdate = new Date().getTime();
 
@@ -150,7 +150,7 @@
 //				camera.position.set( 0, 2, 50 );
 
 				camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 0.5, 3000000 );
-				camera.position.set( 0, 750, 2000 );
+				camera.position.set( 0, 750, 4000 );
 				camera.lookAt(new THREE.Vector3(0, 0, 0));
 
 				var ambient = new THREE.AmbientLight( 0x221100 );
@@ -214,7 +214,7 @@
 	            scene.add(newObj);
 
 				//--
-				var textureLoader = new THREE.TextureLoader();
+/*				var textureLoader = new THREE.TextureLoader();
 				waterNormals = textureLoader.load( 'examples/textures/waternormals.jpg' );
 				waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping;
 
@@ -304,7 +304,7 @@
 					vertexColors: THREE.FaceColors,
 					shininess: 100,
 					envMap: cubeMap
-				} );
+				} );*/
 
 //				sphere = new THREE.Mesh( geometry, material );
 //				scene.add( sphere );
@@ -404,8 +404,10 @@
 				// sphere.rotation.x = time * 0.5;
 				// sphere.rotation.z = time * 0.51;
 
-				water.material.uniforms.time.value += 1.0 / 60.0;
-				water.render();
+				if (water) {
+					water.material.uniforms.time.value += 1.0 / 60.0;
+					water.render();
+				}
 			}
 
 			function onDocumentMouseMove( event ) {
